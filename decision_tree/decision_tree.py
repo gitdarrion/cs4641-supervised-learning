@@ -1,5 +1,5 @@
 from preprocess import preprocess
-from read import X_df, y_df
+from data import X_df, y_df
 from sklearn import tree
 from sklearn.metrics import accuracy_score
 import time

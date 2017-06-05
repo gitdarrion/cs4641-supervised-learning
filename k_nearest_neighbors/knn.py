@@ -1,11 +1,11 @@
-from sklearn.neighbors import NearestNeighbors
-from read import X_df
+from sklearn.neighbors import KNeighborsClassifier
+from data import X_df, y_df
+from preprocess import preprocess
 import numpy as np
 
-X = X_df.as_matrix()
-classifer = NearestNeighbors(n_neighbors=3)
-classifier = classifier.fit(X)
-distances, indices = classifier.kneighbors(X)
+print '\nClassifying...\n'
 
-print 'Distances:\n', distances
-print 'Indices:\n', indices
+X_train, X_test, y_train, y_test = preprocess(X_df, y_df, 0.1)
+classifier = KNeighborsClassifier()
+classifier = classifier.fit(X_train, y_train)
+print 'Score: ', classifier.score(X_test, y_test)

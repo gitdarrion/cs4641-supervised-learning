@@ -19,17 +19,3 @@ X_df = df[X_cols]
 X_df = pd.get_dummies(X_df)
 
 y_df = df['imdb_score']
-
-if __name__ == '__main__':
-    end = time.time()
-    run_time = end - start
-
-    print str(len(X_df)) + ' X results'
-    print str(len(y_df)) + ' Y results'
-    print 'Cleaning finished in', run_time, 'seconds.'
-else:
-    end = time.time()
-    run_time = end - start
-    print str(len(X_df)) + ' X results'
-    print str(len(y_df)) + ' Y results'
-    print 'Cleaning finished in', run_time, 'seconds.'
