@@ -3,9 +3,10 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-start = time.time()
-print '\nPreprocessing...'
-
+"""
+    1. Convert dataframes to matrices.
+    2. Convert y vector continous values to labels.
+"""
 def preprocess(X_df=pd.DataFrame, y_df=pd.Series, test_size=float):
     X = X_df.as_matrix()
     y = y_df.as_matrix().astype(int).astype(str)
