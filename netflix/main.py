@@ -1,28 +1,15 @@
 """
-========================
-Plotting Learning Curves
-========================
+Author: Scikit-Learn
+Modified by: Darrion
 
-On the left side the learning curve of a naive Bayes classifier is shown for
-the digits dataset. Note that the training score and the cross-validation score
-are both not very good at the end. However, the shape of the curve can be found
-in more complex datasets very often: the training score is very high at the
-beginning and decreases and the cross-validation score is very low at the
-beginning and increases. On the right side we see the learning curve of an SVM
-with RBF kernel. We can see clearly that the training score is still around
-the maximum and the validation score could be increased with more training
-samples.
 """
 print(__doc__)
 
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.naive_bayes import GaussianNB
-from sklearn.neural_network import MLPClassifier
-from sklearn.svm import SVC
 from sklearn.datasets import load_digits
 from sklearn.model_selection import learning_curve
-from sklearn.model_selection import ShuffleSplit
 
 
 def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
@@ -79,6 +66,10 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
     train_scores_std = np.std(train_scores, axis=1)
     test_scores_mean = np.mean(test_scores, axis=1)
     test_scores_std = np.std(test_scores, axis=1)
+
+    print train_scores_mean[-1]
+    print test_scores_mean[-1]
+
     plt.grid()
 
     plt.fill_between(train_sizes, train_scores_mean - train_scores_std,
@@ -95,44 +86,63 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
     return plt
 
 
-from data import X_df, y_df
-""" Convert to matrices. """
-X = X_df.as_matrix()
-y = y_df.as_matrix().astype(int).astype(str)
+from data import X, y
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import ShuffleSplit
+from sklearn.ensemble import GradientBoostingClassifier
 
-""" Convert continous values to labels. """
-y_ranges = {
-    '1':'1-3',
-    '2':'1-3',
-    '3':'1-3',
-    '4':'4-6',
-    '5':'4-6',
-    '6':'4-6',
-    '7':'7-9',
-    '8':'7-9',
-    '9':'7-9',
-    '10':'10'
-}
 
-for i in range(0, len(y)):
-    y[i] = y_ranges[y[i]]
+def nn(n_splits=100, test_size=0.2, random_state=0, activation='logistic', hidden_layer_sizes=(10,46), solver='sgd'):
+    title = "Learning Curves: Neural Network Classifier"
+    # Cross validation with 100 iterations to get smoother mean test and train
+    # score curves, each time with 20% data randomly selected as a validation set.
+    cv = ShuffleSplit(n_splits=n_splits, test_size=test_size, random_state=random_state)
+    estimator = MLPClassifier(activation=activation, hidden_layer_sizes=hidden_layer_sizes, solver=solver)
+    plot_learning_curve(estimator, title, X, y, ylim=(0.7, 1.01), cv=cv, n_jobs=1)
 
-title = "Learning Curves (MLP)"
-# Cross validation with 100 iterations to get smoother mean test and train
-# score curves, each time with 20% data randomly selected as a validation set.
-cv = ShuffleSplit(n_splits=100, test_size=0.2, random_state=0)
-estimator = MLPClassifier()
-plot_learning_curve(estimator, title, X, y, ylim=(0.7, 1.01), cv=cv, n_jobs=1)
+def svm(n_splits=10, test_size=0.2, random_state=0, kernel='rbf'):
+    title = "Learning Curves: SVM Classifier"
+    cv = ShuffleSplit(n_splits=10, test_size=0.2, random_state=0)
+    estimator = SVC(kernel=kernel)
+    plot_learning_curve(estimator, title, X, y, ylim=(0.7, 1.01), cv=cv, n_jobs=1)
 
-cv = ShuffleSplit(n_splits=10, test_size=0.2, random_state=0)
-estimator = SVC()
-plot_learning_curve(estimator, title, X, y, ylim=(0.7, 1.01), cv=cv, n_jobs=1)
+def knn(neighbors=[1,2,3,4,5,6,7,8,9,10], n_splits=10, test_size=0.2, cv_random_state=0):
+    for k in neighbors:
+        print 'For k=', k
+        title = "Learning Curves: K=%s Nearest Neighbors Classifier" % k
+        cv = ShuffleSplit(n_splits=n_splits, test_size=test_size, random_state=cv_random_state)
+        estimator = KNeighborsClassifier(n_neighbors=k)
+        plot_learning_curve(estimator, title, X, y, ylim=(0.7, 1.01), cv=cv, n_jobs=1)
 
-"""
-title = "Learning Curves (SVM, RBF kernel, $\gamma=0.001$)"
-# SVC is more expensive so we do a lower number of CV iterations:
-cv = ShuffleSplit(n_splits=10, test_size=0.2, random_state=0)
-estimator = SVC(gamma=0.001)
-plot_learning_curve(estimator, title, X, y, (0.7, 1.01), cv=cv, n_jobs=1)
-"""
+def dt(n_splits=10, test_size=0.2, cv_random_state=0):
+    title = "Learning Curves: Decision Tree Classifier"
+    cv = cv = ShuffleSplit(n_splits=n_splits, test_size=test_size, random_state=cv_random_state)
+    estimator = DecisionTreeClassifier()
+    plot_learning_curve(estimator, title, X, y, ylim=(0.7, 1.01), cv=cv, n_jobs=1)
+
+def gb(n_splits=10, test_size=0.2, cv_random_state=0, estimator_random_state=0, learning_rate=0.1, max_depth=1):
+    title = "Learning Curves: Gradient Boosted Decision Tree Classifier"
+    cv = cv = ShuffleSplit(n_splits=n_splits, test_size=test_size, cv_random_state=random_state)
+    estimator = GradientBoostingClassifier(learning_rate=learning_rate, max_depth=max_depth, random_state=estimator_random_state)
+    plot_learning_curve(estimator, title, X, y, ylim=(0.7, 1.01), cv=cv, n_jobs=1)
+
+import sys
+if len(sys.argv) == 2:
+    arg = sys.argv[1]
+    if arg == 'nn':
+        nn()
+    elif arg == 'svm':
+        svm()
+    elif arg == 'knn':
+        knn()
+    elif arg == 'dt':
+        dt()
+    elif arg == 'gb':
+        gb()
+else:
+    print 'Invalid inputs.'
+
 plt.show()
